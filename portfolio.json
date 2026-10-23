@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "cobalt-workbench-145-ryan-vo",
+  "owner": "A220man",
+  "email": "ryandtvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: cobalt-workbench-145-ryan-vo",
+  "workflows": [
+    "View and invalidate ESM import cache entries by specifier or cache key",
+    "Create and manage import map configurations for bare specifier resolution",
+    "Monitor cache statistics and import map usage in real-time dashboard"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}

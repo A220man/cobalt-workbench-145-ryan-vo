@@ -1,0 +1,31 @@
+{
+  "name": "cobalt-workbench-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "axios": "^1.7.7",
+    "lucide-react": "^0.441.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.9",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.6",
+    "vitest": "^2.1.1",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/jest-dom": "^6.5.0",
+    "jsdom": "^25.0.0"
+  }
+}
