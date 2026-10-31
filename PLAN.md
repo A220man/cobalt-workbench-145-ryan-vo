@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-skeleton-and-cache-api
+import-maps-support
 
 ## Roadmap
 
@@ -27,12 +27,17 @@ Tests: `backend/tests/test_api.py`, `backend/tests/test_services.py`, `backend/t
 
 ### import-maps-support — Import maps configuration and resolution
 
-Status: planned
+Status: done
 
 Acceptance:
 - Backend stores import map configurations
 - API to create/read/update/delete import maps
 - Frontend UI to manage import maps
+- Real-time JSON validation for imports and scopes with visual feedback
+
+Implementation: `backend/app/api/__init__.py`, `backend/app/services/__init__.py`, `backend/app/models/__init__.py`, `frontend/src/components/ImportMapsPanel.tsx`, `frontend/src/hooks/useImportMaps.ts`, `frontend/src/api/client.ts`, `frontend/src/types/index.ts`, `frontend/src/utils/jsonValidation.ts`
+
+Tests: `backend/tests/test_api.py`, `backend/tests/test_services.py`, `backend/tests/test_models.py`, `frontend/src/test/Dashboard.test.tsx`
 
 ### package-dir-api — Package directory resolution API
 
