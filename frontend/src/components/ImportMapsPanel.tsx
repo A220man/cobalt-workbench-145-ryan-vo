@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Plus, Trash2, Edit2, Save, X, ChevronDown } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Trash2, Edit2, Save, X, ChevronDown, AlertCircle, CheckCircle } from 'lucide-react';
 import type { ImportMap } from '../types';
+import { validateImports, validateScopes } from '../utils/jsonValidation';
 
 interface ImportMapsPanelProps {
   maps: ImportMap[];
@@ -19,13 +20,22 @@ export function ImportMapsPanel({ maps, loading, onCreate, onUpdate, onDelete }:
   const [editImports, setEditImports] = useState('{}');
   const [editScopes, setEditScopes] = useState('{}');
 
+  const newImportsValidation = useMemo(() => validateImports(newMapImports), [newMapImports]);
+  const newScopesValidation = useMemo(() => validateScopes(newMapScopes), [newMapScopes]);
+  const editImportsValidation = useMemo(() => validateImports(editImports), [editImports]);
+  const editScopesValidation = useMemo(() => validateScopes(editScopes), [editScopes]);
+
+  const canCreate = newMapName.trim() && newImportsValidation.valid && newScopesValidation.valid;
+  const canSaveEdit = editImportsValidation.valid && editScopesValidation.valid;
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canCreate) return;
     try {
       await onCreate(
         newMapName,
-        JSON.parse(newMapImports),
-        newMapScopes.trim() ? JSON.parse(newMapScopes) : undefined
+        newImportsValidation.parsed as Record<string, string>,
+        newScopesValidation.valid && newScopesValidation.parsed ? newScopesValidation.parsed as Record<string, Record<string, string>> : undefined
       );
       setShowCreate(false);
       setNewMapName('');
@@ -43,11 +53,12 @@ export function ImportMapsPanel({ maps, loading, onCreate, onUpdate, onDelete }:
   };
 
   const handleSaveEdit = async (id: number) => {
+    if (!canSaveEdit) return;
     try {
       await onUpdate(
         id,
-        JSON.parse(editImports),
-        editScopes.trim() ? JSON.parse(editScopes) : undefined
+        editImportsValidation.parsed as Record<string, string>,
+        editScopesValidation.valid && editScopesValidation.parsed ? editScopesValidation.parsed as Record<string, Record<string, string>> : undefined
       );
       setEditingId(null);
     } catch (err) {
@@ -110,24 +121,44 @@ export function ImportMapsPanel({ maps, loading, onCreate, onUpdate, onDelete }:
             <textarea
               value={newMapImports}
               onChange={(e) => setNewMapImports(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+              className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!newImportsValidation.valid ? 'border-red-300' : 'border-gray-300'}`}
               rows={4}
               placeholder='{"lodash": "node_modules/lodash/lodash.js"}'
               required
             />
+            {!newImportsValidation.valid && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {newImportsValidation.error}
+              </p>
+            )}
+            {newImportsValidation.valid && newMapImports.trim() && (
+              <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Valid JSON
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Scopes (JSON, optional)</label>
             <textarea
               value={newMapScopes}
               onChange={(e) => setNewMapScopes(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+              className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!newScopesValidation.valid ? 'border-red-300' : 'border-gray-300'}`}
               rows={3}
               placeholder='{"node_modules/lodash": {"fp": "node_modules/lodash/fp.js"}}'
             />
+            {!newScopesValidation.valid && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {newScopesValidation.error}
+              </p>
+            )}
+            {newScopesValidation.valid && newMapScopes.trim() && newMapScopes.trim() !== '{}' && (
+              <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Valid JSON
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+            <button type="submit" disabled={!canCreate} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               Create
             </button>
             <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
@@ -160,7 +191,8 @@ export function ImportMapsPanel({ maps, loading, onCreate, onUpdate, onDelete }:
                   <>
                     <button
                       onClick={() => handleSaveEdit(map.id)}
-                      className="p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
+                      disabled={!canSaveEdit}
+                      className="p-2 text-green-600 hover:bg-green-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Save"
                     >
                       <Save className="w-4 h-4" />
@@ -201,18 +233,38 @@ export function ImportMapsPanel({ maps, loading, onCreate, onUpdate, onDelete }:
                   <textarea
                     value={editImports}
                     onChange={(e) => setEditImports(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                    className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!editImportsValidation.valid ? 'border-red-300' : 'border-gray-300'}`}
                     rows={5}
                   />
+                  {!editImportsValidation.valid && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {editImportsValidation.error}
+                    </p>
+                  )}
+                  {editImportsValidation.valid && editImports.trim() && (
+                    <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Valid JSON
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Scopes</label>
                   <textarea
                     value={editScopes}
                     onChange={(e) => setEditScopes(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                    className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!editScopesValidation.valid ? 'border-red-300' : 'border-gray-300'}`}
                     rows={3}
                   />
+                  {!editScopesValidation.valid && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {editScopesValidation.error}
+                    </p>
+                  )}
+                  {editScopesValidation.valid && editScopes.trim() && editScopes.trim() !== '{}' && (
+                    <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Valid JSON
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (

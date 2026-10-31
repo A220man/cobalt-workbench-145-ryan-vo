@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "skeleton-and-cache-api",
+  "current_feature": "import-maps-support",
   "features": [
     {
       "id": "skeleton-and-cache-api",
@@ -50,14 +50,29 @@
     {
       "id": "import-maps-support",
       "title": "Import maps configuration and resolution",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Backend stores import map configurations",
         "API to create/read/update/delete import maps",
-        "Frontend UI to manage import maps"
+        "Frontend UI to manage import maps",
+        "Real-time JSON validation for imports and scopes with visual feedback"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        "backend/app/api/__init__.py",
+        "backend/app/services/__init__.py",
+        "backend/app/models/__init__.py",
+        "frontend/src/components/ImportMapsPanel.tsx",
+        "frontend/src/hooks/useImportMaps.ts",
+        "frontend/src/api/client.ts",
+        "frontend/src/types/index.ts",
+        "frontend/src/utils/jsonValidation.ts"
+      ],
+      "tests": [
+        "backend/tests/test_api.py",
+        "backend/tests/test_services.py",
+        "backend/tests/test_models.py",
+        "frontend/src/test/Dashboard.test.tsx"
+      ]
     },
     {
       "id": "package-dir-api",

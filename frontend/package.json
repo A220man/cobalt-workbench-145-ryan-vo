@@ -27,5 +27,10 @@
     "@testing-library/react": "^16.0.1",
     "@testing-library/jest-dom": "^6.5.0",
     "jsdom": "^25.0.0"
+  },
+  "author": {
+    "name": "Ryan Vo",
+    "email": "ryandtvo@gmail.com",
+    "url": "https://github.com/A220man"
   }
 }
