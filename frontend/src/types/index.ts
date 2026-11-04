@@ -53,6 +53,33 @@ export interface UpdateImportMap {
   scopes?: Record<string, Record<string, string>>;
 }
 
+// Package Directory Types
+export interface PackageDir {
+  id: number;
+  name: string;
+  path: string;
+  package_json: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePackageDir {
+  name: string;
+  path: string;
+  package_json?: Record<string, any>;
+}
+
+export interface UpdatePackageDir {
+  name?: string;
+  path?: string;
+  package_json?: Record<string, any>;
+}
+
+export interface PackageDirResolveResponse {
+  specifier: string;
+  package_dir: PackageDir | null;
+  resolved: boolean;
+}
 export interface InvalidateResponse {
   invalidated_count: number;
   specifier?: string;

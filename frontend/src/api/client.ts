@@ -8,6 +8,10 @@ import type {
   CreateImportMap,
   UpdateImportMap,
   InvalidateResponse,
+  PackageDir,
+  CreatePackageDir,
+  UpdatePackageDir,
+  PackageDirResolveResponse,
 } from '../types';
 
 const API_BASE = '/api';
@@ -110,6 +114,45 @@ class ApiClient {
 
   async deleteImportMap(id: number): Promise<void> {
     await this.client.delete(`/import-maps/${id}`);
+  }
+
+  // Package Directories
+  async listPackageDirs(params?: { limit?: number; offset?: number }): Promise<PackageDir[]> {
+    const response = await this.client.get<PackageDir[]>('/package-dirs', { params });
+    return response.data;
+  }
+
+  async getPackageDir(id: number): Promise<PackageDir> {
+    const response = await this.client.get<PackageDir>(`/package-dirs/${id}`);
+    return response.data;
+  }
+
+  async getPackageDirByName(name: string): Promise<PackageDir> {
+    const response = await this.client.get<PackageDir>(`/package-dirs/by-name/${encodeURIComponent(name)}`);
+    return response.data;
+  }
+
+  async getPackageDirByPath(path: string): Promise<PackageDir> {
+    const response = await this.client.get<PackageDir>(`/package-dirs/by-path/${encodeURIComponent(path)}`);
+    return response.data;
+  }
+
+  async createPackageDir(data: CreatePackageDir): Promise<PackageDir> {
+    const response = await this.client.post<PackageDir>('/package-dirs', data);
+    return response.data;
+  }
+
+  async updatePackageDir(id: number, data: UpdatePackageDir): Promise<PackageDir> {
+    const response = await this.client.patch<PackageDir>(`/package-dirs/${id}`, data);
+    return response.data;
+  }
+
+  async deletePackageDir(id: number): Promise<void> {
+    await this.client.delete(`/package-dirs/${id}`);
+  }
+  async resolvePackageDir(specifier: string): Promise<PackageDirResolveResponse> {
+    const response = await this.client.get<PackageDirResolveResponse>(`/package-dirs/resolve`, { params: { specifier } });
+    return response.data;
   }
 }
 

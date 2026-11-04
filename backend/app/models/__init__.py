@@ -39,3 +39,16 @@ class ImportMap(Base):
     @property
     def scopes_dict(self) -> dict:
         return json.loads(self.scopes) if self.scopes else {}
+class PackageDir(Base):
+    __tablename__ = "package_dirs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, index=True)
+    path = Column(String(1000), nullable=False, unique=True, index=True)
+    package_json = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    @property
+    def package_json_dict(self) -> dict:
+        return json.loads(self.package_json) if self.package_json else {}
