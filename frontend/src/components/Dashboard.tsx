@@ -1,18 +1,16 @@
-import { LayoutDashboard, Database, Trash2, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Database, Trash2, AlertTriangle, Package } from 'lucide-react';
 import { useImportCache, useImportCacheStats } from '../hooks/useImportCache';
 import { useImportMaps } from '../hooks/useImportMaps';
+import { usePackageDirs } from '../hooks/usePackageDirs';
 import { CacheEntryTable } from './CacheEntryTable';
 import { ImportMapsPanel } from './ImportMapsPanel';
+import { PackageDirsPanel } from './PackageDirsPanel';
 import { StatCard } from './StatCard';
-
-export function Dashboard() {
   const { entries, loading: entriesLoading, error: entriesError, refetch: refetchEntries, invalidateEntry, invalidateAll } =
     useImportCache();
   const { stats, error: statsError, refetch: refetchStats } = useImportCacheStats();
   const { maps, loading: mapsLoading, refetch: refetchMaps, createMap, updateMap, deleteMap } = useImportMaps();
-
-  const handleInvalidateAll = async () => {
-    if (confirm('Invalidate ALL cache entries? This cannot be undone.')) {
+  const { dirs, loading: dirsLoading, refetch: refetchDirs, createDir, updateDir, deleteDir, resolveDir } = usePackageDirs();
       await invalidateAll();
       refetchEntries();
       refetchStats();
@@ -32,6 +30,25 @@ export function Dashboard() {
   const handleDeleteMap = async (id: number) => {
     await deleteMap(id);
     refetchMaps();
+  };
+
+  const handleCreateDir = async (name: string, path: string, package_json?: Record<string, any>) => {
+    await createDir({ name, path, package_json });
+    refetchDirs();
+  };
+
+  const handleUpdateDir = async (id: number, name?: string, path?: string, package_json?: Record<string, any>) => {
+    await updateDir(id, { name, path, package_json });
+    refetchDirs();
+  };
+
+  const handleDeleteDir = async (id: number) => {
+    await deleteDir(id);
+    refetchDirs();
+  };
+
+  const handleResolveDir = async (specifier: string) => {
+    return await resolveDir(specifier);
   };
 
   return (

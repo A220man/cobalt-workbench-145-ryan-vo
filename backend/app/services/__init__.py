@@ -1,8 +1,7 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from app.models import ImportCacheEntry, ImportMap
+from app.models import ImportCacheEntry, ImportMap, PackageDir
 from datetime import datetime, timezone
-
 
 class ImportCacheService:
     def __init__(self, db: Session):
@@ -103,6 +102,76 @@ class ImportCacheService:
             "failed": failed,
             "invalidated": invalidated,
         }
+
+
+class PackageDirService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def list_dirs(self, limit: int = 100, offset: int = 0) -> List[PackageDir]:
+        return self.db.query(PackageDir).order_by(PackageDir.updated_at.desc()).offset(offset).limit(limit).all()
+
+    def get_dir(self, dir_id: int) -> Optional[PackageDir]:
+        return self.db.query(PackageDir).filter(PackageDir.id == dir_id).first()
+
+    def get_by_name(self, name: str) -> Optional[PackageDir]:
+        return self.db.query(PackageDir).filter(PackageDir.name == name).first()
+
+    def get_by_path(self, path: str) -> Optional[PackageDir]:
+        return self.db.query(PackageDir).filter(PackageDir.path == path).first()
+
+    def create_dir(self, name: str, path: str, package_json: Optional[Dict[str, Any]] = None) -> PackageDir:
+        import json
+        package_dir = PackageDir(
+            name=name,
+            path=path,
+            package_json=json.dumps(package_json) if package_json else None,
+        )
+        self.db.add(package_dir)
+        self.db.commit()
+        self.db.refresh(package_dir)
+        return package_dir
+
+    def update_dir(self, dir_id: int, **kwargs) -> Optional[PackageDir]:
+        package_dir = self.get_dir(dir_id)
+        if not package_dir:
+            return None
+        import json
+        for key, value in kwargs.items():
+            if key == "package_json" and value is not None:
+                setattr(package_dir, key, json.dumps(value))
+            elif hasattr(package_dir, key):
+                setattr(package_dir, key, value)
+        package_dir.updated_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(package_dir)
+        return package_dir
+
+    def delete_dir(self, dir_id: int) -> bool:
+        package_dir = self.get_dir(dir_id)
+        if not package_dir:
+            return False
+        self.db.delete(package_dir)
+        self.db.commit()
+        return True
+
+    def resolve_package_dir(self, specifier: str) -> Optional[PackageDir]:
+        """
+        Resolve a package directory by specifier (package name).
+        This mimics Node.js package resolution logic.
+        """
+        # First try exact name match
+        package_dir = self.get_by_name(specifier)
+        if package_dir:
+            return package_dir
+
+        # Try scoped package match (e.g., @scope/package)
+        if specifier.startswith("@"):
+            package_dir = self.get_by_name(specifier)
+            if package_dir:
+                return package_dir
+
+        return None
 
 
 class ImportMapService:

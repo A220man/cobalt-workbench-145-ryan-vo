@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator, computed_field, model_validator
 from app.core.database import get_db
-from app.services import ImportCacheService, ImportMapService
-from app.models import ImportCacheEntry, ImportMap
+from app.services import ImportCacheService, ImportMapService, PackageDirService
+from app.models import ImportCacheEntry, ImportMap, PackageDir
 from datetime import datetime
 
 
@@ -223,3 +223,126 @@ def delete_import_map(map_id: int, db: Session = Depends(get_db)):
     service = ImportMapService(db)
     if not service.delete_map(map_id):
         raise HTTPException(status_code=404, detail="Import map not found")
+# Package Dir Schemas
+class PackageDirCreate(BaseModel):
+    name: str
+    path: str
+    package_json: Optional[Dict[str, Any]] = None
+
+
+class PackageDirUpdate(BaseModel):
+    name: Optional[str] = None
+    path: Optional[str] = None
+    package_json: Optional[Dict[str, Any]] = None
+
+
+class PackageDirResponse(BaseModel):
+    id: int
+    name: str
+    path: str
+    package_json: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: datetime
+
+    @model_validator(mode='before')
+    @classmethod
+    def parse_json_fields(cls, data):
+        if isinstance(data, PackageDir):
+            if hasattr(data, 'package_json_dict'):
+                data = {
+                    'id': data.id,
+                    'name': data.name,
+                    'path': data.path,
+                    'package_json': data.package_json_dict,
+                    'created_at': data.created_at,
+                    'updated_at': data.updated_at,
+                }
+        elif isinstance(data, dict):
+            if 'package_json' in data and isinstance(data['package_json'], str):
+                import json
+                data['package_json'] = json.loads(data['package_json'])
+        return data
+
+    class Config:
+        from_attributes = True
+
+
+class PackageDirResolveResponse(BaseModel):
+    specifier: str
+    package_dir: Optional[PackageDirResponse] = None
+    resolved: bool
+
+
+# Package Dir Router
+dirs_router = APIRouter(prefix="/api/package-dirs", tags=["package-dirs"])
+
+
+@dirs_router.get("", response_model=List[PackageDirResponse])
+def list_package_dirs(limit: int = Query(100, ge=1, le=1000), offset: int = Query(0, ge=0), db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    return service.list_dirs(limit=limit, offset=offset)
+
+
+@dirs_router.get("/resolve", response_model=PackageDirResolveResponse)
+def resolve_package_dir(specifier: str = Query(..., description="Package specifier to resolve"), db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    package_dir = service.resolve_package_dir(specifier)
+    return PackageDirResolveResponse(
+        specifier=specifier,
+        package_dir=package_dir,
+        resolved=package_dir is not None,
+    )
+
+
+@dirs_router.get("/{dir_id}", response_model=PackageDirResponse)
+def get_package_dir(dir_id: int, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    package_dir = service.get_dir(dir_id)
+    if not package_dir:
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    return package_dir
+
+
+@dirs_router.get("/by-name/{name}", response_model=PackageDirResponse)
+def get_package_dir_by_name(name: str, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    package_dir = service.get_by_name(name)
+    if not package_dir:
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    return package_dir
+@dirs_router.get("/by-path/{path:path}", response_model=PackageDirResponse)
+def get_package_dir_by_path(path: str, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    package_dir = service.get_by_path(path)
+    if not package_dir:
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    return package_dir
+
+
+@dirs_router.post("", response_model=PackageDirResponse, status_code=status.HTTP_201_CREATED)
+def create_package_dir(package_dir: PackageDirCreate, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    existing = service.get_by_name(package_dir.name)
+    if existing:
+        raise HTTPException(status_code=409, detail="Package directory name already exists")
+    existing_path = service.get_by_path(package_dir.path)
+    if existing_path:
+        raise HTTPException(status_code=409, detail="Package directory path already exists")
+    return service.create_dir(package_dir.name, package_dir.path, package_dir.package_json)
+
+
+@dirs_router.patch("/{dir_id}", response_model=PackageDirResponse)
+def update_package_dir(dir_id: int, package_dir: PackageDirUpdate, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    updated = service.update_dir(dir_id, **package_dir.model_dump(exclude_unset=True))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    return updated
+
+
+@dirs_router.delete("/{dir_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_package_dir(dir_id: int, db: Session = Depends(get_db)):
+    service = PackageDirService(db)
+    if not service.delete_dir(dir_id):
+        raise HTTPException(status_code=404, detail="Package directory not found")
+
