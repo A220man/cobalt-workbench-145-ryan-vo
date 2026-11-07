@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "import-maps-support",
+  "current_feature": "package-dir-api",
   "features": [
     {
       "id": "skeleton-and-cache-api",
@@ -77,14 +77,31 @@
     {
       "id": "package-dir-api",
       "title": "Package directory resolution API",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Backend resolves package root directories",
         "API endpoint for package dir lookup",
-        "Frontend integration"
+        "Frontend integration",
+        "Frontend UI to manage package directories with CRUD operations",
+        "Package specifier resolution with scoped package support",
+        "Real-time JSON validation for package.json with visual feedback"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        "backend/app/api/__init__.py",
+        "backend/app/services/__init__.py",
+        "backend/app/models/__init__.py",
+        "frontend/src/components/Dashboard.tsx",
+        "frontend/src/components/PackageDirsPanel.tsx",
+        "frontend/src/hooks/usePackageDirs.ts",
+        "frontend/src/api/client.ts",
+        "frontend/src/types/index.ts"
+      ],
+      "tests": [
+        "backend/tests/test_api.py",
+        "backend/tests/test_services.py",
+        "backend/tests/test_models.py",
+        "frontend/src/test/PackageDirsPanel.test.tsx"
+      ]
     },
     {
       "id": "typescript-transpile-node-modules",

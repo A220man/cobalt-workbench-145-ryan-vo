@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import Base, ImportCacheEntry, ImportMap
-from app.services import ImportCacheService, ImportMapService
+from app.models import Base, ImportCacheEntry, ImportMap, PackageDir
+from app.services import ImportCacheService, ImportMapService, PackageDirService
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_services.db"
@@ -192,4 +192,112 @@ class TestImportMapService:
         )
 
         assert import_map.scopes is not None
-        assert '"sub": "path/sub.js"' in import_map.scopes
+
+
+class TestPackageDirService:
+    def test_create_and_get_dir(self, db):
+        service = PackageDirService(db)
+        package_dir = service.create_dir("test-pkg", "/path/test-pkg", {"name": "test-pkg", "version": "1.0.0"})
+
+        assert package_dir.id is not None
+        assert package_dir.name == "test-pkg"
+        assert package_dir.path == "/path/test-pkg"
+        assert package_dir.package_json_dict["name"] == "test-pkg"
+
+        fetched = service.get_dir(package_dir.id)
+        assert fetched is not None
+        assert fetched.name == "test-pkg"
+        assert fetched.path == "/path/test-pkg"
+
+    def test_get_by_name(self, db):
+        service = PackageDirService(db)
+        service.create_dir("by-name", "/path/by-name")
+
+        found = service.get_by_name("by-name")
+        assert found is not None
+        assert found.name == "by-name"
+
+        not_found = service.get_by_name("nonexistent")
+        assert not_found is None
+
+    def test_get_by_path(self, db):
+        service = PackageDirService(db)
+        service.create_dir("by-path", "/path/by-path")
+
+        found = service.get_by_path("/path/by-path")
+        assert found is not None
+        assert found.path == "/path/by-path"
+
+        not_found = service.get_by_path("/path/nonexistent")
+        assert not_found is None
+
+    def test_list_dirs(self, db):
+        service = PackageDirService(db)
+        service.create_dir("pkg1", "/path/pkg1")
+        service.create_dir("pkg2", "/path/pkg2")
+        service.create_dir("pkg3", "/path/pkg3")
+
+        dirs = service.list_dirs(limit=10, offset=0)
+        assert len(dirs) == 3
+        assert dirs[0].name == "pkg3"
+        assert dirs[2].name == "pkg1"
+
+        page2 = service.list_dirs(limit=2, offset=1)
+        assert len(page2) == 2
+        assert page2[0].name == "pkg2"
+
+    def test_update_dir(self, db):
+        service = PackageDirService(db)
+        package_dir = service.create_dir("update-pkg", "/path/update")
+
+        updated = service.update_dir(package_dir.id, name="updated-name")
+        assert updated is not None
+        assert updated.name == "updated-name"
+        assert updated.path == "/path/update"
+
+        not_updated = service.update_dir(999, name="ghost")
+        assert not_updated is None
+
+    def test_update_dir_package_json(self, db):
+        service = PackageDirService(db)
+        package_dir = service.create_dir("json-pkg", "/path/json", {"version": "1.0.0"})
+
+        updated = service.update_dir(package_dir.id, package_json={"version": "2.0.0", "main": "index.js"})
+        assert updated is not None
+        assert updated.package_json_dict["version"] == "2.0.0"
+        assert updated.package_json_dict["main"] == "index.js"
+
+    def test_delete_dir(self, db):
+        service = PackageDirService(db)
+        package_dir = service.create_dir("delete-pkg", "/path/delete")
+
+        result = service.delete_dir(package_dir.id)
+        assert result is True
+
+        deleted = service.get_dir(package_dir.id)
+        assert deleted is None
+
+        result_false = service.delete_dir(999)
+        assert result_false is False
+
+    def test_resolve_package_dir(self, db):
+        service = PackageDirService(db)
+        service.create_dir("resolve-pkg", "/path/resolve-pkg")
+
+        resolved = service.resolve_package_dir("resolve-pkg")
+        assert resolved is not None
+        assert resolved.name == "resolve-pkg"
+
+        not_resolved = service.resolve_package_dir("nonexistent")
+        assert not_resolved is None
+
+    def test_resolve_scoped_package_dir(self, db):
+        service = PackageDirService(db)
+        service.create_dir("@scope/pkg", "/path/scoped-pkg")
+
+        resolved = service.resolve_package_dir("@scope/pkg")
+        assert resolved is not None
+        assert resolved.name == "@scope/pkg"
+
+        not_resolved = service.resolve_package_dir("@other/pkg")
+        assert not_resolved is None

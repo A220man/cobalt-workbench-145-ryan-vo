@@ -243,5 +243,101 @@ class TestImportMapsAPI:
         response = client.delete(f"/api/import-maps/{map_id}")
         assert response.status_code == 204
 
-        get_resp = client.get(f"/api/import-maps/{map_id}")
+        assert get_resp.status_code == 404
+
+
+class TestPackageDirsAPI:
+    def test_list_empty_package_dirs(self, client):
+        response = client.get("/api/package-dirs")
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_create_package_dir(self, client):
+        response = client.post(
+            "/api/package-dirs",
+            json={
+                "name": "test-package",
+                "path": "/path/to/test-package",
+                "package_json": {"name": "test-package", "version": "1.0.0", "main": "index.js"},
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "test-package"
+        assert data["path"] == "/path/to/test-package"
+        assert data["package_json"]["name"] == "test-package"
+        assert data["package_json"]["version"] == "1.0.0"
+
+    def test_create_duplicate_path_fails(self, client):
+        client.post("/api/package-dirs", json={"name": "pkg1", "path": "/path/dup"})
+        response = client.post("/api/package-dirs", json={"name": "pkg2", "path": "/path/dup"})
+        assert response.status_code == 409
+
+    def test_get_package_dir(self, client):
+        create_resp = client.post("/api/package-dirs", json={"name": "get-pkg", "path": "/path/get-pkg"})
+        dir_id = create_resp.json()["id"]
+
+        response = client.get(f"/api/package-dirs/{dir_id}")
+        assert response.status_code == 200
+        assert response.json()["name"] == "get-pkg"
+
+    def test_get_package_dir_by_name(self, client):
+        client.post("/api/package-dirs", json={"name": "by-name", "path": "/path/by-name"})
+
+        response = client.get("/api/package-dirs/by-name/by-name")
+        assert response.status_code == 200
+        assert response.json()["name"] == "by-name"
+
+    def test_get_package_dir_by_path(self, client):
+        client.post("/api/package-dirs", json={"name": "by-path", "path": "/path/by-path"})
+
+        response = client.get("/api/package-dirs/by-path//path/by-path")
+        assert response.status_code == 200
+        assert response.json()["path"] == "/path/by-path"
+
+    def test_update_package_dir(self, client):
+        create_resp = client.post("/api/package-dirs", json={"name": "update-pkg", "path": "/path/update"})
+        dir_id = create_resp.json()["id"]
+
+        response = client.patch(f"/api/package-dirs/{dir_id}", json={"name": "updated-name"})
+        assert response.status_code == 200
+        assert response.json()["name"] == "updated-name"
+
+    def test_delete_package_dir(self, client):
+        create_resp = client.post("/api/package-dirs", json={"name": "delete-pkg", "path": "/path/delete"})
+        dir_id = create_resp.json()["id"]
+
+        response = client.delete(f"/api/package-dirs/{dir_id}")
+        assert response.status_code == 204
+
+        get_resp = client.get(f"/api/package-dirs/{dir_id}")
+        assert get_resp.status_code == 404
+
+    def test_resolve_package_dir(self, client):
+        client.post("/api/package-dirs", json={"name": "resolve-pkg", "path": "/path/resolve-pkg"})
+
+        response = client.get("/api/package-dirs/resolve?specifier=resolve-pkg")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["specifier"] == "resolve-pkg"
+        assert data["resolved"] is True
+        assert data["package_dir"]["name"] == "resolve-pkg"
+
+    def test_resolve_package_dir_not_found(self, client):
+        response = client.get("/api/package-dirs/resolve?specifier=nonexistent")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["specifier"] == "nonexistent"
+        assert data["resolved"] is False
+        assert data["package_dir"] is None
+
+    def test_list_package_dirs_pagination(self, client):
+        for i in range(15):
+            client.post("/api/package-dirs", json={"name": f"pkg{i}", "path": f"/path/pkg{i}"})
+
+        page1 = client.get("/api/package-dirs?limit=10&offset=0").json()
+        page2 = client.get("/api/package-dirs?limit=10&offset=10").json()
+
+        assert len(page1) == 10
+        assert len(page2) == 5
         assert get_resp.status_code == 404

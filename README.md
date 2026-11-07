@@ -142,7 +142,19 @@ graph TB
 | GET | `/api/import-maps/{id}` | Get import map |
 | POST | `/api/import-maps` | Create import map |
 | PATCH | `/api/import-maps/{id}` | Update import map |
-| DELETE | `/api/import-maps/{id}` | Delete import map |
+
+### Package Directories
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/package-dirs` | List package directories |
+| GET | `/api/package-dirs/{id}` | Get package directory by ID |
+| GET | `/api/package-dirs/by-name/{name}` | Get package directory by name |
+| GET | `/api/package-dirs/by-path/{path}` | Get package directory by path |
+| GET | `/api/package-dirs/resolve` | Resolve package directory by specifier |
+| POST | `/api/package-dirs` | Create package directory |
+| PATCH | `/api/package-dirs/{id}` | Update package directory |
+| DELETE | `/api/package-dirs/{id}` | Delete package directory |
 
 ## Configuration
 

@@ -112,8 +112,8 @@ import { StatCard } from './StatCard';
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg border border-gray-200">
+          <div>
+            <div className="bg-white rounded-lg border border-gray-200 h-full">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">Import Cache Entries</h2>
                 <button
@@ -142,6 +142,17 @@ import { StatCard } from './StatCard';
               onCreate={handleCreateMap}
               onUpdate={handleUpdateMap}
               onDelete={handleDeleteMap}
+            />
+          </div>
+
+          <div>
+            <PackageDirsPanel
+              dirs={dirs}
+              loading={dirsLoading}
+              onCreate={handleCreateDir}
+              onUpdate={handleUpdateDir}
+              onDelete={handleDeleteDir}
+              onResolve={handleResolveDir}
             />
           </div>
         </div>
