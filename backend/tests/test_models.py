@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import Base, ImportCacheEntry, ImportMap
+from app.models import Base, ImportCacheEntry, ImportMap, PackageDir
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_models.db"
@@ -101,3 +101,53 @@ class TestImportMapModel:
         with pytest.raises(Exception):
             db.add(import_map2)
             db.commit()
+
+class TestPackageDirModel:
+    def test_create_dir(self, db):
+        package_dir = PackageDir(
+            name="test-pkg",
+            path="/path/test-pkg",
+            package_json='{"name": "test-pkg", "version": "1.0.0"}',
+        )
+        db.add(package_dir)
+        db.commit()
+        db.refresh(package_dir)
+
+        assert package_dir.id is not None
+        assert package_dir.name == "test-pkg"
+        assert package_dir.path == "/path/test-pkg"
+        assert package_dir.package_json_dict["name"] == "test-pkg"
+        assert package_dir.package_json_dict["version"] == "1.0.0"
+        assert package_dir.created_at is not None
+        assert package_dir.updated_at is not None
+
+    def test_create_dir_without_package_json(self, db):
+        package_dir = PackageDir(
+            name="no-json",
+            path="/path/no-json",
+        )
+        db.add(package_dir)
+        db.commit()
+        db.refresh(package_dir)
+
+        assert package_dir.package_json is None
+        assert package_dir.package_json_dict == {}
+
+    def test_unique_path_enforced(self, db):
+        dir1 = PackageDir(name="pkg1", path="/path/unique")
+        dir2 = PackageDir(name="pkg2", path="/path/unique")
+        db.add(dir1)
+        db.commit()
+
+        with pytest.raises(Exception):
+            db.add(dir2)
+            db.commit()
+
+    def test_unique_name_not_enforced(self, db):
+        dir1 = PackageDir(name="same-name", path="/path/pkg1")
+        dir2 = PackageDir(name="same-name", path="/path/pkg2")
+        db.add(dir1)
+        db.add(dir2)
+        db.commit()
+
+        assert dir1.id != dir2.id

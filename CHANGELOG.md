@@ -1,9 +1,23 @@
 # Changelog
 
-## 1.2.0 — work-in-progress checkpoint
+## 1.3.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
 
+## 1.3.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+### Added
+- Package directory resolution API with CRUD endpoints
+- Package specifier resolution (exact name and scoped packages)
+- Frontend PackageDirsPanel with create, read, update, delete, and resolve operations
+- JSON validation for package.json with real-time visual feedback
+- Backend tests for PackageDir API (12 tests), services (10 tests), and models (4 tests)
+- Frontend tests for PackageDirsPanel component
+- Dashboard integration showing PackageDirsPanel alongside cache and import maps
+
+## 1.2.0 — work-in-progress checkpoint
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.

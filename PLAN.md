@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-import-maps-support
+package-dir-api
 
 ## Roadmap
 
@@ -41,12 +41,19 @@ Tests: `backend/tests/test_api.py`, `backend/tests/test_services.py`, `backend/t
 
 ### package-dir-api — Package directory resolution API
 
-Status: planned
+Status: done
 
 Acceptance:
 - Backend resolves package root directories
 - API endpoint for package dir lookup
 - Frontend integration
+- Frontend UI to manage package directories with CRUD operations
+- Package specifier resolution with scoped package support
+- Real-time JSON validation for package.json with visual feedback
+
+Implementation: `backend/app/api/__init__.py`, `backend/app/services/__init__.py`, `backend/app/models/__init__.py`, `frontend/src/components/Dashboard.tsx`, `frontend/src/components/PackageDirsPanel.tsx`, `frontend/src/hooks/usePackageDirs.ts`, `frontend/src/api/client.ts`, `frontend/src/types/index.ts`
+
+Tests: `backend/tests/test_api.py`, `backend/tests/test_services.py`, `backend/tests/test_models.py`, `frontend/src/test/PackageDirsPanel.test.tsx`
 
 ### typescript-transpile-node-modules — TypeScript transpilation for node_modules workflow
 
