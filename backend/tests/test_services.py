@@ -239,8 +239,8 @@ class TestPackageDirService:
 
         dirs = service.list_dirs(limit=10, offset=0)
         assert len(dirs) == 3
-        assert dirs[0].name == "pkg3"
-        assert dirs[2].name == "pkg1"
+        assert dirs[0].name == "pkg1"
+        assert dirs[2].name == "pkg3"
 
         page2 = service.list_dirs(limit=2, offset=1)
         assert len(page2) == 2

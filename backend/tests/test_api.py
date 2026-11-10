@@ -243,6 +243,7 @@ class TestImportMapsAPI:
         response = client.delete(f"/api/import-maps/{map_id}")
         assert response.status_code == 204
 
+        get_resp = client.get(f"/api/import-maps/{map_id}")
         assert get_resp.status_code == 404
 
 
@@ -340,4 +341,3 @@ class TestPackageDirsAPI:
 
         assert len(page1) == 10
         assert len(page2) == 5
-        assert get_resp.status_code == 404
