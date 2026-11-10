@@ -52,8 +52,8 @@ describe('PackageDirsPanel', () => {
 
     expect(screen.getByText('test-package')).toBeInTheDocument();
     expect(screen.getByText('@scope/scoped-package')).toBeInTheDocument();
-    expect(screen.getByText('/path/to/test-package')).toBeInTheDocument();
-    expect(screen.getByText('/path/to/scoped-package')).toBeInTheDocument();
+    expect(screen.getByText('Path: /path/to/test-package')).toBeInTheDocument();
+    expect(screen.getByText('Path: /path/to/scoped-package')).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -68,7 +68,9 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Loading package directories...')).toBeInTheDocument();
+    // Loading state shows skeleton, not the panel content
+    expect(screen.queryByText('Package Directories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Resolve Package Directory')).not.toBeInTheDocument();
   });
 
   it('shows empty state when no directories', () => {
@@ -83,10 +85,10 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    expect(screen.getByText('No package directories configured')).toBeInTheDocument();
+    expect(screen.getByText('No package directories configured.')).toBeInTheDocument();
   });
 
-  it('opens create form when clicking Add Package Directory', () => {
+  it('opens create form when clicking New Package Directory', () => {
     render(
       <PackageDirsPanel
         dirs={mockDirs}
@@ -98,7 +100,7 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Add Package Directory'));
+    fireEvent.click(screen.getByText('New Package Directory'));
     expect(screen.getByText('Create Package Directory')).toBeInTheDocument();
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Path')).toBeInTheDocument();
@@ -117,10 +119,11 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Add Package Directory'));
+    fireEvent.click(screen.getByText('New Package Directory'));
     const jsonTextarea = screen.getByLabelText('Package JSON (optional)');
     fireEvent.change(jsonTextarea, { target: { value: '{ invalid json' } });
-    expect(screen.getByText('Invalid JSON')).toBeInTheDocument();
+    // The validation shows the actual JSON parse error message in a p element with AlertCircle icon
+    expect(screen.getByText(/Expected property name/)).toBeInTheDocument();
   });
 
   it('calls onCreate when submitting valid create form', async () => {
@@ -135,7 +138,7 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Add Package Directory'));
+    fireEvent.click(screen.getByText('New Package Directory'));
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'new-package' } });
     fireEvent.change(screen.getByLabelText('Path'), { target: { value: '/path/to/new-package' } });
     fireEvent.click(screen.getByText('Create'));
@@ -157,8 +160,8 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('test-package').closest('tr')?.querySelector('button[aria-label="Edit"]') as Element);
-    expect(screen.getByText('Edit Package Directory')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByLabelText('Edit')[0]);
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByDisplayValue('test-package')).toBeInTheDocument();
   });
 
@@ -174,17 +177,20 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    const editButton = screen.getByText('test-package').closest('tr')?.querySelector('button[aria-label="Edit"]') as Element;
-    fireEvent.click(editButton);
+    fireEvent.click(screen.getAllByLabelText('Edit')[0]);
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'updated-name' } });
-    fireEvent.click(screen.getByText('Save'));
+    fireEvent.click(screen.getByLabelText('Save'));
 
     await waitFor(() => {
-      expect(mockOnUpdate).toHaveBeenCalledWith(1, { name: 'updated-name' });
+      expect(mockOnUpdate).toHaveBeenCalledWith(1, 'updated-name', '/path/to/test-package', { name: 'test-package', version: '1.0.0', main: 'index.js' });
     });
   });
 
   it('calls onDelete when clicking delete button and confirming', async () => {
+    // Mock confirm to return true
+    const originalConfirm = globalThis.confirm;
+    globalThis.confirm = vi.fn(() => true);
+
     render(
       <PackageDirsPanel
         dirs={mockDirs}
@@ -196,13 +202,13 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    const deleteButton = screen.getByText('test-package').closest('tr')?.querySelector('button[aria-label="Delete"]') as Element;
-    fireEvent.click(deleteButton);
-    fireEvent.click(screen.getByText('Delete'));
+    fireEvent.click(screen.getAllByLabelText('Delete')[0]);
 
     await waitFor(() => {
       expect(mockOnDelete).toHaveBeenCalledWith(1);
     });
+
+    globalThis.confirm = originalConfirm;
   });
 
   it('shows resolve form and calls onResolve', async () => {
@@ -217,15 +223,16 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText('e.g., lodash, @scope/pkg'), { target: { value: 'test-package' } });
+    fireEvent.change(screen.getByPlaceholderText('lodash, @scope/package, react'), { target: { value: 'test-package' } });
     fireEvent.click(screen.getByText('Resolve'));
 
     await waitFor(() => {
       expect(mockOnResolve).toHaveBeenCalledWith('test-package');
     });
 
-    expect(screen.getByText('Resolved: true')).toBeInTheDocument();
-    expect(screen.getByText('test-package')).toBeInTheDocument();
+    expect(screen.getByText('Resolved')).toBeInTheDocument();
+    expect(screen.getByText('Name:')).toBeInTheDocument();
+    expect(screen.getByText('Path:')).toBeInTheDocument();
   });
 
   it('shows not resolved state when package not found', async () => {
@@ -246,11 +253,11 @@ describe('PackageDirsPanel', () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText('e.g., lodash, @scope/pkg'), { target: { value: 'nonexistent' } });
+    fireEvent.change(screen.getByPlaceholderText('lodash, @scope/package, react'), { target: { value: 'nonexistent' } });
     fireEvent.click(screen.getByText('Resolve'));
 
     await waitFor(() => {
-      expect(screen.getByText('Resolved: false')).toBeInTheDocument();
+      expect(screen.getByText('Not Found')).toBeInTheDocument();
     });
   });
 });

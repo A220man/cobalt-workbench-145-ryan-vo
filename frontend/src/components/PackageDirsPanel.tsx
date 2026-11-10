@@ -11,7 +11,7 @@ interface PackageDirsPanelProps {
   onResolve: (specifier: string) => Promise<PackageDirResolveResponse>;
 }
 
-export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, onResolve }: PackageDirsPanelProps) {
+export function PackageDirsPanel({ dirs = [], loading, onCreate, onUpdate, onDelete, onResolve }: PackageDirsPanelProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [resolveSpecifier, setResolveSpecifier] = useState('');
@@ -180,8 +180,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
         <form onSubmit={handleCreate} className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 space-y-4">
           <h3 className="text-sm font-medium text-blue-900">Create Package Directory</h3>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label htmlFor="create-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
+              id="create-name"
               type="text"
               value={newDirName}
               onChange={(e) => setNewDirName(e.target.value)}
@@ -191,8 +192,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Path</label>
+            <label htmlFor="create-path" className="block text-sm font-medium text-gray-700 mb-1">Path</label>
             <input
+              id="create-path"
               type="text"
               value={newDirPath}
               onChange={(e) => setNewDirPath(e.target.value)}
@@ -202,8 +204,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Package JSON (optional)</label>
+            <label htmlFor="create-package-json" className="block text-sm font-medium text-gray-700 mb-1">Package JSON (optional)</label>
             <textarea
+              id="create-package-json"
               value={newDirPackageJson}
               onChange={(e) => setNewDirPackageJson(e.target.value)}
               className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!newPackageJsonValidation.valid ? 'border-red-300' : 'border-gray-300'}`}
@@ -259,6 +262,7 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                       disabled={!canSaveEdit}
                       className="p-2 text-green-600 hover:bg-green-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Save"
+                      aria-label="Save"
                     >
                       <Save className="w-4 h-4" />
                     </button>
@@ -266,6 +270,7 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                       onClick={() => setEditingId(null)}
                       className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
                       title="Cancel"
+                      aria-label="Cancel"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -276,6 +281,7 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                       onClick={() => handleEdit(dir)}
                       className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                       title="Edit"
+                      aria-label="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -283,6 +289,7 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                       onClick={() => handleDelete(dir.id)}
                       className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors"
                       title="Delete"
+                      aria-label="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -294,8 +301,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
             {editingId === dir.id ? (
               <div className="p-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label htmlFor={`edit-name-${dir.id}`} className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
+                    id={`edit-name-${dir.id}`}
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
@@ -303,8 +311,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Path</label>
+                  <label htmlFor={`edit-path-${dir.id}`} className="block text-sm font-medium text-gray-700 mb-1">Path</label>
                   <input
+                    id={`edit-path-${dir.id}`}
                     type="text"
                     value={editPath}
                     onChange={(e) => setEditPath(e.target.value)}
@@ -312,8 +321,9 @@ export function PackageDirsPanel({ dirs, loading, onCreate, onUpdate, onDelete, 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Package JSON</label>
+                  <label htmlFor={`edit-package-json-${dir.id}`} className="block text-sm font-medium text-gray-700 mb-1">Package JSON</label>
                   <textarea
+                    id={`edit-package-json-${dir.id}`}
                     value={editPackageJson}
                     onChange={(e) => setEditPackageJson(e.target.value)}
                     className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono ${!editPackageJsonValidation.valid ? 'border-red-300' : 'border-gray-300'}`}

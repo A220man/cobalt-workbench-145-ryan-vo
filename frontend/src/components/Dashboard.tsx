@@ -1,4 +1,4 @@
-import { LayoutDashboard, Database, Trash2, AlertTriangle, Package } from 'lucide-react';
+import { LayoutDashboard, Database, Trash2, AlertTriangle } from 'lucide-react';
 import { useImportCache, useImportCacheStats } from '../hooks/useImportCache';
 import { useImportMaps } from '../hooks/useImportMaps';
 import { usePackageDirs } from '../hooks/usePackageDirs';
@@ -6,15 +6,17 @@ import { CacheEntryTable } from './CacheEntryTable';
 import { ImportMapsPanel } from './ImportMapsPanel';
 import { PackageDirsPanel } from './PackageDirsPanel';
 import { StatCard } from './StatCard';
+export function Dashboard() {
   const { entries, loading: entriesLoading, error: entriesError, refetch: refetchEntries, invalidateEntry, invalidateAll } =
     useImportCache();
   const { stats, error: statsError, refetch: refetchStats } = useImportCacheStats();
   const { maps, loading: mapsLoading, refetch: refetchMaps, createMap, updateMap, deleteMap } = useImportMaps();
   const { dirs, loading: dirsLoading, refetch: refetchDirs, createDir, updateDir, deleteDir, resolveDir } = usePackageDirs();
-      await invalidateAll();
-      refetchEntries();
-      refetchStats();
-    }
+
+  const handleInvalidateAll = async () => {
+    await invalidateAll();
+    refetchEntries();
+    refetchStats();
   };
 
   const handleCreateMap = async (name: string, imports: Record<string, string>, scopes?: Record<string, Record<string, string>>) => {
