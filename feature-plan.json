@@ -106,7 +106,7 @@
     {
       "id": "typescript-transpile-node-modules",
       "title": "TypeScript transpilation for node_modules workflow",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": [
         "Configuration for transpile packages",
         "Backend manages transpilation settings",

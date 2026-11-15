@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Integer, String, Text, DateTime, Index
+from sqlalchemy import Boolean, Column, Integer, String, Text, DateTime, Index
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -52,3 +52,16 @@ class PackageDir(Base):
     @property
     def package_json_dict(self) -> dict:
         return json.loads(self.package_json) if self.package_json else {}
+class TsTranspileConfig(Base):
+    __tablename__ = "ts_transpile_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    package_pattern = Column(String(500), nullable=False, index=True)
+    enabled = Column(Boolean, nullable=False, default=True)
+    config_data = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    @property
+    def config_dict(self) -> dict:
+        return json.loads(self.config_data) if self.config_data else {}
