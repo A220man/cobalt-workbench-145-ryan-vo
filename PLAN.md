@@ -57,7 +57,7 @@ Tests: `backend/tests/test_api.py`, `backend/tests/test_services.py`, `backend/t
 
 ### typescript-transpile-node-modules — TypeScript transpilation for node_modules workflow
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Configuration for transpile packages
