@@ -239,26 +239,6 @@ class TsTranspileService:
         config = TsTranspileConfig(
             package_pattern=package_pattern,
             enabled=enabled,
-(unused variable 'config_data', which is not used in the rest of the function]
-
-class TsTranspileService:
-    def __init__(self, db: Session):
-        self.db = db
-
-    def list_configs(self, limit: int = 100, offset: int = 0) -> List[TsTranspileConfig]:
-        return self.db.query(TsTranspileConfig).order_by(TsTranspileConfig.updated_at.desc()).offset(offset).limit(limit).all()
-
-    def get_config(self, config_id: int) -> Optional[TsTranspileConfig]:
-        return self.db.query(TsTranspileConfig).filter(TsTranspileConfig.id == config_id).first()
-
-    def get_config_by_pattern(self, pattern: str) -> Optional[TsTranspileConfig]:
-        return self.db.query(TsTranspileConfig).filter(TsTranspileConfig.package_pattern == pattern).first()
-
-    def create_config(self, package_pattern: str, enabled: bool = True, config_data: Optional[Dict[str, Any]] = None) -> TsTranspileConfig:
-        import json
-        config = TsTranspileConfig(
-            package_pattern=package_pattern,
-            enabled=enabled,
             config_data=json.dumps(config_data) if config_data else None,
         )
         self.db.add(config)
@@ -272,5 +252,20 @@ class TsTranspileService:
             return None
         import json
         for key, value in kwargs.items():
-            if key == "config_data" and value is not None:\n                setattr(config, key, json.dumps(value))\n            elif hasattr(config, key):\n                setattr(config, key, value)\n        config.updated_at = datetime.now(timezone.utc)\n        self.db.commit()\n        self.db.refresh(config)\n        return config\n\n    def delete_config(self, config_id: int) -> bool:\n        config = self.get_config(config_id)\n        if not config:\n            return False\n        self.db.delete(config)\n        self.db.commit()\n        return True
+            if key == "config_data" and value is not None:
+                setattr(config, key, json.dumps(value))
+            elif hasattr(config, key):
+                setattr(config, key, value)
+        config.updated_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(config)
+        return config
+
+    def delete_config(self, config_id: int) -> bool:
+        config = self.get_config(config_id)
+        if not config:
+            return False
+        self.db.delete(config)
+        self.db.commit()
+        return True
 
