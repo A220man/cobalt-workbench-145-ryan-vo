@@ -64,6 +64,10 @@ Acceptance:
 - Backend manages transpilation settings
 - Frontend configuration UI
 
+Implementation: `Backend: TsTranspileService (list, get, create, update, delete configs)`, `Backend: API routes /api/transpile-configs CRUD`, `Frontend: types and configuration UI component`
+
+Tests: `Backend: test transpile config API endpoints`, `Frontend: test transpile config component`
+
 ### structured-logging — Structured logging integration
 
 Status: planned

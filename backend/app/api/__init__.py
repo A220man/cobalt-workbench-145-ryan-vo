@@ -346,3 +346,82 @@ def delete_package_dir(dir_id: int, db: Session = Depends(get_db)):
     if not service.delete_dir(dir_id):
         raise HTTPException(status_code=404, detail="Package directory not found")
 
+
+
+# TsTranspileConfig Schemas
+class TsTranspileConfigCreate(BaseModel):
+    package_pattern: str
+    enabled: bool = True
+    config_data: Optional[Dict[str, Any]] = None
+
+
+class TsTranspileConfigUpdate(BaseModel):
+    package_pattern: Optional[str] = None
+    enabled: Optional[bool] = None
+    config_data: Optional[Dict[str, Any]] = None
+
+
+class TsTranspileConfigResponse(BaseModel):
+    id: int
+    package_pattern: str
+    enabled: bool
+    config_data: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# TsTranspileConfig Router
+transpile_router = APIRouter(prefix="/api/transpile-configs", tags=["transpile-configs"])
+
+
+@transpile_router.get("", response_model=List[TsTranspileConfigResponse])
+def list_transpile_configs(
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    service = TsTranspileService(db)
+    return service.list_configs(limit=limit, offset=offset)
+
+
+@transpile_router.get("/{config_id}", response_model=TsTranspileConfigResponse)
+def get_transpile_config(config_id: int, db: Session = Depends(get_db)):
+    service = TsTranspileService(db)
+    config = service.get_config(config_id)
+    if not config:
+        raise HTTPException(status_code=404, detail="Transpile config not found")
+    return config
+
+
+@transpile_router.get("/by-pattern/{pattern}", response_model=TsTranspileConfigResponse)
+def get_transpile_config_by_pattern(pattern: str, db: Session = Depends(get_db)):
+    service = TsTranspileService(db)
+    config = service.get_config_by_pattern(pattern)
+    if not config:
+        raise HTTPException(status_code=404, detail="Transpile config not found")
+    return config
+
+
+@transpile_router.post("", response_model=TsTranspileConfigResponse, status_code=status.HTTP_201_CREATED)
+def create_transpile_config(config: TsTranspileConfigCreate, db: Session = Depends(get_db)):
+    service = TsTranspileService(db)
+    return service.create_config(config.package_pattern, config.enabled, config.config_data)
+
+
+@transpile_router.patch("/{config_id}", response_model=TsTranspileConfigResponse)
+def update_transpile_config(config_id: int, config: TsTranspileConfigUpdate, db: Session = Depends(get_db)):
+    service = TsTranspileService(db)
+    updated = service.update_config(config_id, **config.model_dump(exclude_unset=True))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Transpile config not found")
+    return updated
+
+
+@transpile_router.delete("/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transpile_config(config_id: int, db: Session = Depends(get_db)):
+    service = TsTranspileService(db)
+    success = service.delete_config(config_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Transpile config not found")
