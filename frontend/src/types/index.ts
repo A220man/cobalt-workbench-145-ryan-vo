@@ -84,3 +84,24 @@ export interface InvalidateResponse {
   invalidated_count: number;
   specifier?: string;
 }
+// TypeScript Transpile Config Types
+export interface TsTranspileConfig {
+  id: number;
+  package_pattern: string;
+  enabled: boolean;
+  config_data: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTsTranspileConfig {
+  package_pattern: string;
+  enabled?: boolean;
+  config_data?: Record<string, any>;
+}
+
+export interface UpdateTsTranspileConfig {
+  package_pattern?: string;
+  enabled?: boolean;
+  config_data?: Record<string, any>;
+}

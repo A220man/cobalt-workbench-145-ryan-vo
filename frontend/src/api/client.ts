@@ -12,6 +12,9 @@ import type {
   CreatePackageDir,
   UpdatePackageDir,
   PackageDirResolveResponse,
+  TsTranspileConfig,
+  CreateTsTranspileConfig,
+  UpdateTsTranspileConfig,
 } from '../types';
 
 const API_BASE = '/api';
@@ -153,6 +156,36 @@ class ApiClient {
   async resolvePackageDir(specifier: string): Promise<PackageDirResolveResponse> {
     const response = await this.client.get<PackageDirResolveResponse>(`/package-dirs/resolve`, { params: { specifier } });
     return response.data;
+  }
+
+  // TypeScript Transpile Configs
+  async listTranspileConfigs(params?: { limit?: number; offset?: number }): Promise<TsTranspileConfig[]> {
+    const response = await this.client.get<TsTranspileConfig[]>('/api/transpile-configs', { params });
+    return response.data;
+  }
+
+  async getTranspileConfig(id: number): Promise<TsTranspileConfig> {
+    const response = await this.client.get<TsTranspileConfig>(`/api/transpile-configs/${id}`);
+    return response.data;
+  }
+
+  async getTranspileConfigByPattern(pattern: string): Promise<TsTranspileConfig | null> {
+    const response = await this.client.get<TsTranspileConfig>(`/api/transpile-configs/by-pattern/${encodeURIComponent(pattern)}`);
+    return response.data || null;
+  }
+
+  async createTranspileConfig(data: CreateTsTranspileConfig): Promise<TsTranspileConfig> {
+    const response = await this.client.post<TsTranspileConfig>('/api/transpile-configs', data);
+    return response.data;
+  }
+
+  async updateTranspileConfig(id: number, data: UpdateTsTranspileConfig): Promise<TsTranspileConfig> {
+    const response = await this.client.patch<TsTranspileConfig>(`/api/transpile-configs/${id}`, data);
+    return response.data;
+  }
+
+  async deleteTranspileConfig(id: number): Promise<void> {
+    await this.client.delete(`/api/transpile-configs/${id}`);
   }
 }
 
