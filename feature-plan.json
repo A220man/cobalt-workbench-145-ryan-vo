@@ -113,13 +113,13 @@
         "Frontend configuration UI"
       ],
       "implementation": [
-        "Backend: TsTranspileService (list, get, create, update, delete configs)",
-        "Backend: API routes /api/transpile-configs CRUD",
-        "Frontend: types and configuration UI component"
+        "Backend: TsTranspileService (list, get, create, update, delete configs) - DONE",
+        "Backend: API routes /api/transpile-configs CRUD - DONE",
+        "Frontend: types and configuration UI component - IN PROGRESS"
       ],
       "tests": [
-        "Backend: test transpile config API endpoints",
-        "Frontend: test transpile config component"
+        "Backend: test transpile config API endpoints - PENDING",
+        "Frontend: test transpile config component - PENDING"
       ]
     },
     {

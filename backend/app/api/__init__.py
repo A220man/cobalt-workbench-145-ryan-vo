@@ -110,6 +110,11 @@ class ImportMapResponse(BaseModel):
 # Routers
 router = APIRouter(prefix="/api/import-cache", tags=["import-cache"])
 
+# Transpile Configs router
+router.include_router(transpile_router)
+router.include_router(maps_router)
+router.include_router(dirs_router)
+
 
 @router.get("", response_model=List[ImportCacheEntryResponse])
 def list_cache_entries(
